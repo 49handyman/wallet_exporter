@@ -13,6 +13,9 @@ import (
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
+var zcashConfValues zcashConf
+var err error
+
 var (
 	listenAddress = kingpin.Flag(
 		"web.listen-address",
@@ -25,20 +28,34 @@ var (
 	rpcPort = kingpin.Flag(
 		"rpc.port",
 		"Post for RPC endpoint",
-	).Default("18232").String()
+	).String()
 	rpcUser = kingpin.Flag(
 		"rpc.user",
 		"User for RPC endpoint auth.",
-	).Default("zcashrpc").String()
+	).String()
 	rpcPassword = kingpin.Flag(
 		"rpc.password",
 		"Password for RPC endpoint auth.",
-	).Default("notsecure").String()
+	).String()
+	zcashConfPath = kingpin.Flag(
+		"zcash.conf.path",
+		"Path to a zcash.conf file.",
+	).String()
 )
 
 func main() {
 	kingpin.HelpFlag.Short('h')
 	kingpin.Parse()
+	log.Infoln("command line config", *listenAddress, *rpcHost, *rpcPort, *rpcUser)
+	if *zcashConfPath != "ignore" {
+		zcashConfValues, err = readZcashConf()
+		if err != nil {
+			log.Fatalln("Failed to read zcash conf", err)
+		}
+	}
+	reconcileConfigs()
+	log.Infoln("exporter config", *listenAddress, *rpcHost, *rpcPort, *rpcUser)
+
 	log.Infoln("Starting zcashd_exporter", version.Info())
 	log.Infoln("Build context", version.BuildContext())
 

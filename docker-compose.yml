@@ -10,6 +10,7 @@ services:
     environment:
       - ZCASHD_RPCUSER=$ZCASHD_RPCUSER
       - ZCASHD_RPCPASSWORD=$ZCASHD_RPCPASSWORD
+      - ZCASHD_RPCPORT=$ZCASHD_RPCPORT
       - ZCASHD_NETWORK=$ZCASHD_NETWORK
       - ZCASHD_ALLOWIP=$ZCASHD_ALLOWIP
     mem_limit: 4G
@@ -25,7 +26,7 @@ services:
       - ZCASHD_RPCPASSWORD=$ZCASHD_RPCPASSWORD
     command:
       - --rpc.host=zcashd
-      - --rpc.port=8232
+      - --rpc.port=$ZCASHD_RPCPORT
       - --rpc.user=$ZCASHD_RPCUSER
       - --rpc.password=$ZCASHD_RPCPASSWORD
     ports:

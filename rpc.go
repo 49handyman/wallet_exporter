@@ -1,5 +1,12 @@
 package main
 
+type zcashConf struct {
+	testNet     bool
+	rpcUser     string
+	rpcPassword string
+	rpcPort     string
+}
+
 // GetBlockchainInfo return the zcashd rpc `getblockchaininfo` status
 // https://zcash-rpc.github.io/getblockchaininfo.html
 type GetBlockchainInfo struct {
