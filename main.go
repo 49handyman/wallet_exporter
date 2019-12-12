@@ -75,6 +75,7 @@ func main() {
 	go getWalletInfo()
 	go getPeerInfo()
 	go getChainTips()
+	go getDeprecationInfo()
 	log.Infoln("Listening on", *listenAddress)
 	if err := http.ListenAndServe(*listenAddress, nil); err != nil {
 		log.Fatal(err)
@@ -276,4 +277,23 @@ func getChainTips() {
 		time.Sleep(time.Duration(30) * time.Second)
 	}
 
+}
+
+func getDeprecationInfo() {
+	basicAuth := base64.StdEncoding.EncodeToString([]byte(*rpcUser + ":" + *rpcPassword))
+	rpcClient := jsonrpc.NewClientWithOpts("http://"+*rpcHost+":"+*rpcPort,
+		&jsonrpc.RPCClientOpts{
+			CustomHeaders: map[string]string{
+				"Authorization": "Basic " + basicAuth,
+			}})
+	var deprecationInfo *GetDeprecationInfo
+
+	for {
+		if err := rpcClient.CallFor(&deprecationInfo, "getdeprecationinfo"); err != nil {
+			log.Warnln("Error calling getdeprecationinfo", err)
+		} else {
+			zcashdDeprecationHeight.Set(float64(deprecationInfo.DeprecationHeight))
+		}
+		time.Sleep(time.Duration(300) * time.Second)
+	}
 }

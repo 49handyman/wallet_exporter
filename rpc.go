@@ -75,3 +75,11 @@ type ChainTip struct {
 	Branchlen int    `json:"branchlen"`
 	Status    string `json:"status"`
 }
+
+// GetDeprecationInfo Returns an object containing current version and deprecation block height. Applicable only on mainnet.
+// https://zcash-rpc.github.io/getdeprecationinfo.html
+type GetDeprecationInfo struct {
+	Version           int    `json:"version"`
+	Subversion        string `json:"subversion"`
+	DeprecationHeight int    `json:"deprecationheight"`
+}

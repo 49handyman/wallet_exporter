@@ -71,6 +71,12 @@ var (
 		},
 		[]string{"hash", "status", "height"},
 	)
+	zcashdDeprecationHeight = prometheus.NewGauge(
+		prometheus.GaugeOpts{
+			Name: "zcashd_deprecation_height",
+			Help: "the block height at which this version will deprecate and shut down",
+		},
+	)
 )
 
 // ZCASH_PEERS = Gauge("zcash_peers", "Number of peers")
@@ -112,4 +118,5 @@ func init() {
 	prometheus.MustRegister(zcashdPeerBytesSent)
 	prometheus.MustRegister(zcashdPeerBytesRecv)
 	prometheus.MustRegister(zcashdChainTipLength)
+	prometheus.MustRegister(zcashdDeprecationHeight)
 }
