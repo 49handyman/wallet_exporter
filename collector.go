@@ -77,6 +77,12 @@ var (
 			Help: "the block height at which this version will deprecate and shut down",
 		},
 	)
+	zcashdBestBlockTransitionSeconds = prometheus.NewGauge(
+		prometheus.GaugeOpts{
+			Name: "zcashd_best_block_transtion_seconds",
+			Help: "The seconds between best block transitions",
+		},
+	)
 )
 
 // ZCASH_PEERS = Gauge("zcash_peers", "Number of peers")
@@ -119,4 +125,6 @@ func init() {
 	prometheus.MustRegister(zcashdPeerBytesRecv)
 	prometheus.MustRegister(zcashdChainTipLength)
 	prometheus.MustRegister(zcashdDeprecationHeight)
+	prometheus.MustRegister(zcashdBestBlockTransitionSeconds)
+
 }

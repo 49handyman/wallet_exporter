@@ -76,6 +76,7 @@ func main() {
 	go getPeerInfo()
 	go getChainTips()
 	go getDeprecationInfo()
+	go getBestBlockHash()
 	log.Infoln("Listening on", *listenAddress)
 	if err := http.ListenAndServe(*listenAddress, nil); err != nil {
 		log.Fatal(err)
@@ -295,5 +296,48 @@ func getDeprecationInfo() {
 			zcashdDeprecationHeight.Set(float64(deprecationInfo.DeprecationHeight))
 		}
 		time.Sleep(time.Duration(300) * time.Second)
+	}
+}
+
+func getBestBlockHash() {
+	basicAuth := base64.StdEncoding.EncodeToString([]byte(*rpcUser + ":" + *rpcPassword))
+	rpcClient := jsonrpc.NewClientWithOpts("http://"+*rpcHost+":"+*rpcPort,
+		&jsonrpc.RPCClientOpts{
+			CustomHeaders: map[string]string{
+				"Authorization": "Basic " + basicAuth,
+			}})
+	var bestblockhash *string
+	var lastBlockHash *string
+	var blockTime int64
+
+	for {
+		time.Sleep(time.Duration(5) * time.Second)
+		if err := rpcClient.CallFor(&bestblockhash, "getbestblockhash"); err != nil {
+			log.Warnln("Error calling getbestblockhash", err)
+			continue
+		}
+
+		// If lastBlockHash is not set, set to current bestblockhash
+		// and update blockTime
+		if lastBlockHash == nil {
+			log.Infoln("lastBlockHash not set, setting to: ", *bestblockhash)
+			tempVar := *bestblockhash
+			lastBlockHash = &tempVar
+			blockTime = time.Now().Unix()
+			zcashdBestBlockTransitionSeconds.Set(0)
+			continue
+		}
+
+		// If new bestblockhash is detected, update lastBlockHash
+		// and update blockTime
+		if *lastBlockHash != *bestblockhash {
+			log.Infoln("lastBlockHash changed: ", *bestblockhash)
+			zcashdBestBlockTransitionSeconds.Set(float64(time.Now().Unix() - blockTime))
+			*lastBlockHash = *bestblockhash
+			blockTime = time.Now().Unix()
+			continue
+		}
+
+		zcashdBestBlockTransitionSeconds.Set(float64(time.Now().Unix() - blockTime))
 	}
 }
