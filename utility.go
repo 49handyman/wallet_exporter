@@ -6,7 +6,7 @@ import (
 	"os/user"
 	"strings"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 // Prefer commandline flags, fall back to zcash.conf if available

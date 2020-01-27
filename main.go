@@ -2,14 +2,16 @@ package main
 
 import (
 	"encoding/base64"
+	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/ybbus/jsonrpc"
-	"github.com/zcash-hackworks/zcashd_exporter/version"
+	"gitlab.com/zcash/zcashd_exporter/version"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -41,11 +43,21 @@ var (
 		"zcash.conf.path",
 		"Path to a zcash.conf file.",
 	).String()
+	versionFlag = kingpin.Flag(
+		"version",
+		"Display binary version.",
+	).Default("False").Bool()
 )
 
 func main() {
 	kingpin.HelpFlag.Short('h')
 	kingpin.Parse()
+	if *versionFlag {
+
+		fmt.Printf("(version=%s, branch=%s, gitcommit=%s)\n", version.Version, version.Branch, version.GitCommit)
+		fmt.Printf("(go=%s, user=%s, date=%s)\n", version.GoVersion, version.BuildUser, version.BuildDate)
+		os.Exit(0)
+	}
 	log.Infoln("command line config", *listenAddress, *rpcHost, *rpcPort, *rpcUser)
 	if *zcashConfPath != "ignore" {
 		zcashConfValues, err = readZcashConf()
