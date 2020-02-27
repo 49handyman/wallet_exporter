@@ -1,0 +1,18 @@
+stages:
+  - build
+  - upload
+
+build_binary:
+  stage: build
+  image:
+    name: golang
+    entrypoint: [""]
+  script:
+    - pwd
+    - ls -l
+    - cat Makefile
+    - make build
+  artifacts:
+    paths:
+      - zcashd_exporter
+    expire_in: 1 day

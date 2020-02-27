@@ -7,7 +7,7 @@ import (
 
 var (
 	Version   string
-	Revision  string
+	GitCommit string
 	Branch    string
 	BuildUser string
 	BuildDate string
@@ -15,7 +15,7 @@ var (
 )
 
 func Info() string {
-	return fmt.Sprintf("(version=%s, branch=%s, revision=%s)", Version, Branch, Revision)
+	return fmt.Sprintf("(version=%s, branch=%s, gitcommit=%s)", Version, Branch, GitCommit)
 }
 
 func BuildContext() string {
