@@ -83,6 +83,26 @@ var (
 			Help: "The seconds between best block transitions",
 		},
 	)
+	zcashdValuePoolChainValue = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "zcash_value_pool_chain_value",
+			Help: "Zcash network pool value"},
+		[]string{"id", "monitored"})
+	zcashdValuePoolChainValueZat = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "zcash_value_pool_chain_value_zat",
+			Help: "Zcash network pools value in zat"},
+		[]string{"id", "monitored"})
+	zcashdValuePoolChainValueDelta = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "zcash_value_pool_value_delta",
+			Help: "Zcash network pools delta"},
+		[]string{"id", "monitored"})
+	zcashdValuePoolChainValueDelatZat = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "zcash_value_pool_value_delta_zat",
+			Help: "Zcash network pools delta in zats"},
+		[]string{"id", "monitored"})
 )
 
 // ZCASH_PEERS = Gauge("zcash_peers", "Number of peers")
@@ -126,5 +146,9 @@ func init() {
 	prometheus.MustRegister(zcashdChainTipLength)
 	prometheus.MustRegister(zcashdDeprecationHeight)
 	prometheus.MustRegister(zcashdBestBlockTransitionSeconds)
+	prometheus.MustRegister(zcashdValuePoolChainValue)
+	prometheus.MustRegister(zcashdValuePoolChainValueZat)
+	prometheus.MustRegister(zcashdValuePoolChainValueDelta)
+	prometheus.MustRegister(zcashdValuePoolChainValueDelatZat)
 
 }

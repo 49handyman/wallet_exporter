@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"time"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	log "github.com/sirupsen/logrus"
 	"github.com/ybbus/jsonrpc"
 	"gitlab.com/zcash/zcashd_exporter/version"
 	"gopkg.in/alecthomas/kingpin.v2"
@@ -86,7 +86,7 @@ func main() {
 	go getMemPoolInfo()
 	go getWalletInfo()
 	go getPeerInfo()
-	go getChainTips()
+	//go getChainTips()
 	go getDeprecationInfo()
 	go getBestBlockHash()
 	log.Infoln("Listening on", *listenAddress)
@@ -323,11 +323,13 @@ func getBestBlockHash() {
 	var blockTime int64
 
 	for {
+
 		time.Sleep(time.Duration(5) * time.Second)
 		if err := rpcClient.CallFor(&bestblockhash, "getbestblockhash"); err != nil {
 			log.Warnln("Error calling getbestblockhash", err)
 			continue
 		}
+		go getBlockInfo(*bestblockhash)
 
 		// If lastBlockHash is not set, set to current bestblockhash
 		// and update blockTime
@@ -351,5 +353,39 @@ func getBestBlockHash() {
 		}
 
 		zcashdBestBlockTransitionSeconds.Set(float64(time.Now().Unix() - blockTime))
+	}
+}
+
+func getBlockInfo(bHash string) {
+	basicAuth := base64.StdEncoding.EncodeToString([]byte(*rpcUser + ":" + *rpcPassword))
+	rpcClient := jsonrpc.NewClientWithOpts("http://"+*rpcHost+":"+*rpcPort,
+		&jsonrpc.RPCClientOpts{
+			CustomHeaders: map[string]string{
+				"Authorization": "Basic " + basicAuth,
+			}})
+	var block *Block
+
+	if err := rpcClient.CallFor(&block, "getblock", bHash, 2); err != nil {
+		log.Warnln("Error calling getblock", err)
+		return
+	}
+
+	for _, pool := range block.ValuePools {
+		zcashdValuePoolChainValue.WithLabelValues(
+			pool.ID,
+			strconv.FormatBool(pool.Monitored),
+		).Set(float64(pool.ChainValue))
+		zcashdValuePoolChainValueZat.WithLabelValues(
+			pool.ID,
+			strconv.FormatBool(pool.Monitored),
+		).Set(float64(pool.ChainValueZat))
+		zcashdValuePoolChainValueDelta.WithLabelValues(
+			pool.ID,
+			strconv.FormatBool(pool.Monitored),
+		).Set(float64(pool.ValueDelta))
+		zcashdValuePoolChainValueDelatZat.WithLabelValues(
+			pool.ID,
+			strconv.FormatBool(pool.Monitored),
+		).Set(float64(pool.ValueDeltaZat))
 	}
 }
