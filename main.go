@@ -205,7 +205,7 @@ func getPeerInfo() {
 
 	for {
 		if err := rpcClient.CallFor(&peerinfo, "getpeerinfo"); err != nil {
-			log.Warnln("Error calling getchaintips", err)
+			log.Warnln("Error calling getpeerinfo", err)
 		} else {
 			for _, pi := range *peerinfo {
 				log.Infoln("Got peerinfo: ", pi.Addr)
@@ -329,12 +329,12 @@ func getBestBlockHash() {
 			log.Warnln("Error calling getbestblockhash", err)
 			continue
 		}
-		go getBlockInfo(*bestblockhash)
 
 		// If lastBlockHash is not set, set to current bestblockhash
 		// and update blockTime
 		if lastBlockHash == nil {
 			log.Infoln("lastBlockHash not set, setting to: ", *bestblockhash)
+			go getBlockInfo(*bestblockhash)
 			tempVar := *bestblockhash
 			lastBlockHash = &tempVar
 			blockTime = time.Now().Unix()
@@ -346,6 +346,7 @@ func getBestBlockHash() {
 		// and update blockTime
 		if *lastBlockHash != *bestblockhash {
 			log.Infoln("lastBlockHash changed: ", *bestblockhash)
+			go getBlockInfo(*bestblockhash)
 			zcashdBestBlockTransitionSeconds.Set(float64(time.Now().Unix() - blockTime))
 			*lastBlockHash = *bestblockhash
 			blockTime = time.Now().Unix()
@@ -357,6 +358,7 @@ func getBestBlockHash() {
 }
 
 func getBlockInfo(bHash string) {
+	log.Infoln("Processing block: ", bHash)
 	basicAuth := base64.StdEncoding.EncodeToString([]byte(*rpcUser + ":" + *rpcPassword))
 	rpcClient := jsonrpc.NewClientWithOpts("http://"+*rpcHost+":"+*rpcPort,
 		&jsonrpc.RPCClientOpts{
