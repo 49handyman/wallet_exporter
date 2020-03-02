@@ -323,7 +323,6 @@ func getBestBlockHash() {
 	var blockTime int64
 
 	for {
-
 		time.Sleep(time.Duration(5) * time.Second)
 		if err := rpcClient.CallFor(&bestblockhash, "getbestblockhash"); err != nil {
 			log.Warnln("Error calling getbestblockhash", err)
@@ -335,6 +334,7 @@ func getBestBlockHash() {
 		if lastBlockHash == nil {
 			log.Infoln("lastBlockHash not set, setting to: ", *bestblockhash)
 			go getBlockInfo(*bestblockhash)
+			go gettTXOutSetInfo()
 			tempVar := *bestblockhash
 			lastBlockHash = &tempVar
 			blockTime = time.Now().Unix()
@@ -347,6 +347,7 @@ func getBestBlockHash() {
 		if *lastBlockHash != *bestblockhash {
 			log.Infoln("lastBlockHash changed: ", *bestblockhash)
 			go getBlockInfo(*bestblockhash)
+			go gettTXOutSetInfo()
 			zcashdBestBlockTransitionSeconds.Set(float64(time.Now().Unix() - blockTime))
 			*lastBlockHash = *bestblockhash
 			blockTime = time.Now().Unix()
@@ -365,29 +366,49 @@ func getBlockInfo(bHash string) {
 			CustomHeaders: map[string]string{
 				"Authorization": "Basic " + basicAuth,
 			}})
-	var block *Block
 
+	var block *Block
 	if err := rpcClient.CallFor(&block, "getblock", bHash, 2); err != nil {
 		log.Warnln("Error calling getblock", err)
-		return
-	}
+	} else {
 
-	for _, pool := range block.ValuePools {
+		for _, pool := range block.ValuePools {
+			zcashdValuePoolChainValue.WithLabelValues(
+				pool.ID,
+				strconv.FormatBool(pool.Monitored),
+			).Set(float64(pool.ChainValue))
+			zcashdValuePoolChainValueZat.WithLabelValues(
+				pool.ID,
+				strconv.FormatBool(pool.Monitored),
+			).Set(float64(pool.ChainValueZat))
+			zcashdValuePoolChainValueDelta.WithLabelValues(
+				pool.ID,
+				strconv.FormatBool(pool.Monitored),
+			).Set(float64(pool.ValueDelta))
+			zcashdValuePoolChainValueDelatZat.WithLabelValues(
+				pool.ID,
+				strconv.FormatBool(pool.Monitored),
+			).Set(float64(pool.ValueDeltaZat))
+		}
+	}
+}
+
+func gettTXOutSetInfo() {
+	log.Info("Calling gettxoutsetinfo")
+	basicAuth := base64.StdEncoding.EncodeToString([]byte(*rpcUser + ":" + *rpcPassword))
+	rpcClient := jsonrpc.NewClientWithOpts("http://"+*rpcHost+":"+*rpcPort,
+		&jsonrpc.RPCClientOpts{
+			CustomHeaders: map[string]string{
+				"Authorization": "Basic " + basicAuth,
+			}})
+
+	var txOutSetInfo *TXOutSetInfo
+	if err := rpcClient.CallFor(&txOutSetInfo, "gettxoutsetinfo"); err != nil {
+		log.Warnln("Error calling gettxoutsetinfo", err)
+	} else {
 		zcashdValuePoolChainValue.WithLabelValues(
-			pool.ID,
-			strconv.FormatBool(pool.Monitored),
-		).Set(float64(pool.ChainValue))
-		zcashdValuePoolChainValueZat.WithLabelValues(
-			pool.ID,
-			strconv.FormatBool(pool.Monitored),
-		).Set(float64(pool.ChainValueZat))
-		zcashdValuePoolChainValueDelta.WithLabelValues(
-			pool.ID,
-			strconv.FormatBool(pool.Monitored),
-		).Set(float64(pool.ValueDelta))
-		zcashdValuePoolChainValueDelatZat.WithLabelValues(
-			pool.ID,
-			strconv.FormatBool(pool.Monitored),
-		).Set(float64(pool.ValueDeltaZat))
+			"transparent",
+			"true",
+		).Set(float64(txOutSetInfo.TotalAmount))
 	}
 }

@@ -151,10 +151,18 @@ type VJoinSplitTX struct {
 	VPubNew   float64 `json:"vpub_new"`
 }
 type ValuePool struct {
-	ID            string  `json:name"id"`
-	Monitored     bool    `json:name"monitored"`
-	ChainValue    float64 `json:name"chainValue"`
-	ChainValueZat float64 `json:name"chainValueZat"`
-	ValueDelta    float64 `json:name"valueDelta"`
-	ValueDeltaZat float64 `json:name"valueDeltaZat"`
+	ID            string  `json:"id"`
+	Monitored     bool    `json:"monitored"`
+	ChainValue    float64 `json:"chainValue"`
+	ChainValueZat float64 `json:"chainValueZat"`
+	ValueDelta    float64 `json:"valueDelta"`
+	ValueDeltaZat float64 `json:"valueDeltaZat"`
+}
+
+type TXOutSetInfo struct {
+	Height       int     `json:"height"`
+	BestBlock    string  `json:"bestblock"`
+	Transactions int     `json:"transactions"`
+	TXOuts       int     `json:"txouts"`
+	TotalAmount  float64 `json:"total_amount"`
 }
