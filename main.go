@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"time"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	log "github.com/sirupsen/logrus"
 	"github.com/ybbus/jsonrpc"
 	"gitlab.com/zcash/zcashd_exporter/version"
 	"gopkg.in/alecthomas/kingpin.v2"
@@ -86,7 +86,7 @@ func main() {
 	go getMemPoolInfo()
 	go getWalletInfo()
 	go getPeerInfo()
-	go getChainTips()
+	//go getChainTips()
 	go getDeprecationInfo()
 	go getBestBlockHash()
 	log.Infoln("Listening on", *listenAddress)
@@ -205,7 +205,7 @@ func getPeerInfo() {
 
 	for {
 		if err := rpcClient.CallFor(&peerinfo, "getpeerinfo"); err != nil {
-			log.Warnln("Error calling getchaintips", err)
+			log.Warnln("Error calling getpeerinfo", err)
 		} else {
 			for _, pi := range *peerinfo {
 				log.Infoln("Got peerinfo: ", pi.Addr)
@@ -333,6 +333,8 @@ func getBestBlockHash() {
 		// and update blockTime
 		if lastBlockHash == nil {
 			log.Infoln("lastBlockHash not set, setting to: ", *bestblockhash)
+			go getBlockInfo(*bestblockhash)
+			go gettTXOutSetInfo()
 			tempVar := *bestblockhash
 			lastBlockHash = &tempVar
 			blockTime = time.Now().Unix()
@@ -344,6 +346,8 @@ func getBestBlockHash() {
 		// and update blockTime
 		if *lastBlockHash != *bestblockhash {
 			log.Infoln("lastBlockHash changed: ", *bestblockhash)
+			go getBlockInfo(*bestblockhash)
+			go gettTXOutSetInfo()
 			zcashdBestBlockTransitionSeconds.Set(float64(time.Now().Unix() - blockTime))
 			*lastBlockHash = *bestblockhash
 			blockTime = time.Now().Unix()
@@ -351,5 +355,60 @@ func getBestBlockHash() {
 		}
 
 		zcashdBestBlockTransitionSeconds.Set(float64(time.Now().Unix() - blockTime))
+	}
+}
+
+func getBlockInfo(bHash string) {
+	log.Infoln("Processing block: ", bHash)
+	basicAuth := base64.StdEncoding.EncodeToString([]byte(*rpcUser + ":" + *rpcPassword))
+	rpcClient := jsonrpc.NewClientWithOpts("http://"+*rpcHost+":"+*rpcPort,
+		&jsonrpc.RPCClientOpts{
+			CustomHeaders: map[string]string{
+				"Authorization": "Basic " + basicAuth,
+			}})
+
+	var block *Block
+	if err := rpcClient.CallFor(&block, "getblock", bHash, 2); err != nil {
+		log.Warnln("Error calling getblock", err)
+	} else {
+
+		for _, pool := range block.ValuePools {
+			zcashdValuePoolChainValue.WithLabelValues(
+				pool.ID,
+				strconv.FormatBool(pool.Monitored),
+			).Set(float64(pool.ChainValue))
+			zcashdValuePoolChainValueZat.WithLabelValues(
+				pool.ID,
+				strconv.FormatBool(pool.Monitored),
+			).Set(float64(pool.ChainValueZat))
+			zcashdValuePoolChainValueDelta.WithLabelValues(
+				pool.ID,
+				strconv.FormatBool(pool.Monitored),
+			).Set(float64(pool.ValueDelta))
+			zcashdValuePoolChainValueDelatZat.WithLabelValues(
+				pool.ID,
+				strconv.FormatBool(pool.Monitored),
+			).Set(float64(pool.ValueDeltaZat))
+		}
+	}
+}
+
+func gettTXOutSetInfo() {
+	log.Info("Calling gettxoutsetinfo")
+	basicAuth := base64.StdEncoding.EncodeToString([]byte(*rpcUser + ":" + *rpcPassword))
+	rpcClient := jsonrpc.NewClientWithOpts("http://"+*rpcHost+":"+*rpcPort,
+		&jsonrpc.RPCClientOpts{
+			CustomHeaders: map[string]string{
+				"Authorization": "Basic " + basicAuth,
+			}})
+
+	var txOutSetInfo *TXOutSetInfo
+	if err := rpcClient.CallFor(&txOutSetInfo, "gettxoutsetinfo"); err != nil {
+		log.Warnln("Error calling gettxoutsetinfo", err)
+	} else {
+		zcashdValuePoolChainValue.WithLabelValues(
+			"transparent",
+			"true",
+		).Set(float64(txOutSetInfo.TotalAmount))
 	}
 }

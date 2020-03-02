@@ -55,7 +55,7 @@ type PeerInfo struct {
 	Conntime       int     `json:"conntime"`
 	Timeoffset     int     `json:"timeoffset"`
 	PingTime       float64 `json:"pingtime"`
-	PingWait       int     `json:"pingwait"`
+	PingWait       float64 `json:"pingwait"`
 	Version        int     `json:"version"`
 	Subver         string  `json:"subver"`
 	Inbound        bool    `json:"inbound"`
@@ -82,4 +82,87 @@ type GetDeprecationInfo struct {
 	Version           int    `json:"version"`
 	Subversion        string `json:"subversion"`
 	DeprecationHeight int    `json:"deprecationheight"`
+}
+
+type Block struct {
+	Hash              string        `json:"hash"`
+	Confirmations     int           `json:"confirmations"`
+	Size              int           `json:"size"`
+	Height            int           `json:"height"`
+	Version           int           `json:"version"`
+	MerkleRoot        string        `json:"merkleroot"`
+	FinalSaplingRoot  string        `json:"finalsaplingroot"`
+	TX                []Transaction `json:"tx"`
+	Time              int64         `json:"time"`
+	Nonce             string        `json:"nonce"`
+	Difficulty        float64       `json:"difficulty"`
+	PreviousBlockHash string        `json:"previousblockhash"`
+	NextBlockHash     string        `json:"nextblockhash"`
+	ValuePools        []ValuePool   `json:"valuePools"`
+}
+
+func (b Block) NumberofTransactions() int {
+	return len(b.TX)
+}
+
+type Transaction struct {
+	Hex          string         `json:"hex"`
+	Txid         string         `json:"txid"`
+	Version      int            `json:"version"`
+	Locktime     int            `json:"locktime"`
+	ExpiryHeight int            `json:"expirtheight"`
+	VIn          []VInTX        `json:"vin"`
+	VOut         []VOutTX       `json:"vout"`
+	VJoinSplit   []VJoinSplitTX `json:"vjoinsplit"`
+}
+
+// TransactionTypes
+func (t Transaction) TransactionTypes() (vin, vout, vjoinsplit int) {
+	vin = len(t.VIn)
+	vout = len(t.VOut)
+	vjoinsplit = len(t.VJoinSplit)
+	return vin, vout, vjoinsplit
+}
+
+type VInTX struct {
+	TxID      string `json:"txid"`
+	VOut      int    `json:"vout"`
+	ScriptSig ScriptSig
+	Sequence  int `json:"sequemce"`
+}
+type ScriptSig struct {
+	Asm string `json:"asm"`
+	Hex string `json:"hex"`
+}
+type VOutTX struct {
+	Value        float64
+	N            int
+	ScriptPubKey ScriptPubKey
+}
+type ScriptPubKey struct {
+	Asm       string   `json:"asm"`
+	Hex       string   `json:"hex"`
+	ReqSigs   int      `json:"reqSigs`
+	Type      string   `json:"type"`
+	Addresses []string `json:"addresses"`
+}
+type VJoinSplitTX struct {
+	VPubOldld float64 `json:"vpub_old"`
+	VPubNew   float64 `json:"vpub_new"`
+}
+type ValuePool struct {
+	ID            string  `json:"id"`
+	Monitored     bool    `json:"monitored"`
+	ChainValue    float64 `json:"chainValue"`
+	ChainValueZat float64 `json:"chainValueZat"`
+	ValueDelta    float64 `json:"valueDelta"`
+	ValueDeltaZat float64 `json:"valueDeltaZat"`
+}
+
+type TXOutSetInfo struct {
+	Height       int     `json:"height"`
+	BestBlock    string  `json:"bestblock"`
+	Transactions int     `json:"transactions"`
+	TXOuts       int     `json:"txouts"`
+	TotalAmount  float64 `json:"total_amount"`
 }
