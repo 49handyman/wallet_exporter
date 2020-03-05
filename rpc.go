@@ -105,23 +105,72 @@ func (b Block) NumberofTransactions() int {
 	return len(b.TX)
 }
 
-type Transaction struct {
-	Hex          string         `json:"hex"`
-	Txid         string         `json:"txid"`
-	Version      int            `json:"version"`
-	Locktime     int            `json:"locktime"`
-	ExpiryHeight int            `json:"expirtheight"`
-	VIn          []VInTX        `json:"vin"`
-	VOut         []VOutTX       `json:"vout"`
-	VJoinSplit   []VJoinSplitTX `json:"vjoinsplit"`
+func (b Block) TransactionTypes() (tTXs, sTXs int) {
+	for _, tx := range b.TX {
+		// If all 3 fields are empty, the transaction is transparent
+		if len(tx.VJoinSplit) > 0 ||
+			len(tx.VShieldedOutput) > 0 ||
+			len(tx.VShieldedSpend) > 0 {
+			tTXs++
+		} else {
+			// Otherwise, it's a shielded transaction
+			sTXs++
+		}
+	}
+	return tTXs, sTXs
 }
 
-// TransactionTypes
-func (t Transaction) TransactionTypes() (vin, vout, vjoinsplit int) {
-	vin = len(t.VIn)
-	vout = len(t.VOut)
-	vjoinsplit = len(t.VJoinSplit)
-	return vin, vout, vjoinsplit
+// Transaction describes a zcash tranaction
+type Transaction struct {
+	Hex             string                   `json:"hex"`
+	Txid            string                   `json:"txid"`
+	Version         int                      `json:"version"`
+	Locktime        int                      `json:"locktime"`
+	ExpiryHeight    int                      `json:"expirtheight"`
+	VIn             []VInTX                  `json:"vin"`
+	VOut            []VOutTX                 `json:"vout"`
+	VJoinSplit      []VJoinSplitTX           `json:"vjoinsplit"`
+	ValueBalance    float64                  `json:"valueBalance"`
+	VShieldedSpend  []map[string]interface{} `json:"vShieldedSpend"`
+	VShieldedOutput []map[string]interface{} `json:"vShieldedOutput"`
+}
+
+// TransparentInAndOut return if there are transparent
+// inputs and outputs
+func (t Transaction) TransparentInAndOut() bool {
+	return len(t.VIn) > 0 && len(t.VOut) > 0
+}
+
+// IsTransparent returns if the transaction contains
+// no shielded addresses
+func (t Transaction) IsTransparent() bool {
+	return t.TransparentInAndOut() &&
+		len(t.VJoinSplit) == 0 &&
+		t.ValueBalance == 0 &&
+		len(t.VShieldedSpend) == 0 &&
+		len(t.VShieldedSpend) == 0
+}
+
+// ContainsSprout returns if a transaction contains
+// sprout transaction data
+func (t Transaction) ContainsSprout() bool {
+	return len(t.VJoinSplit) > 0
+}
+
+// ContainsSapling returns if a transaction contains
+// sapling transaction data
+// Check that there is a valueBalance value (positive or negative)
+// Check that there is data for either VShieldedSpend or VShieldedOutput
+func (t Transaction) ContainsSapling() bool {
+	return t.ValueBalance != 0 && (len(t.VShieldedSpend) > 0 ||
+		len(t.VShieldedOutput) > 0)
+}
+
+// IsShielded returns if the transaction contains
+// no transparent addresses
+func (t Transaction) IsShielded() bool {
+	return !t.TransparentInAndOut() &&
+		(t.ContainsSprout() || t.ContainsSapling())
 }
 
 type VInTX struct {
@@ -147,8 +196,8 @@ type ScriptPubKey struct {
 	Addresses []string `json:"addresses"`
 }
 type VJoinSplitTX struct {
-	VPubOldld float64 `json:"vpub_old"`
-	VPubNew   float64 `json:"vpub_new"`
+	VPubOld float64 `json:"vpub_old"`
+	VPubNew float64 `json:"vpub_new"`
 }
 type ValuePool struct {
 	ID            string  `json:"id"`
