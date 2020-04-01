@@ -9,6 +9,8 @@ services:
       - $ZCASHD_PARMDIR:/srv/zcashd/.zcash-params
     env_file:
       - .env
+    ports:
+      - "$ZCASHD_RPCPORT:$ZCASHD_RPCPORT"
     mem_limit: 4G
     logging:
       driver: loki
