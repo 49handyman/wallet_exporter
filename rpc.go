@@ -173,6 +173,14 @@ func (t Transaction) IsShielded() bool {
 		(t.ContainsSprout() || t.ContainsSapling())
 }
 
+// IsMixed returns if the transaction contains
+// transparent addresses and shielded transaction data
+func (t Transaction) IsMixed() bool {
+	tInOrOut := len(t.VIn) > 0 || len(t.VOut) > 0
+	return tInOrOut &&
+		(t.ContainsSprout() || t.ContainsSapling())
+}
+
 type VInTX struct {
 	TxID      string `json:"txid"`
 	VOut      int    `json:"vout"`

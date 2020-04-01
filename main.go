@@ -397,6 +397,10 @@ func getBlockInfo(bHash string) {
 				zcashdBlockTransactions.WithLabelValues(
 					"transparent",
 				).Add(1.0)
+			} else if tx.IsMixed() {
+				zcashdBlockTransactions.WithLabelValues(
+					"mixed",
+				).Add(1.0)
 			} else if tx.IsShielded() {
 				zcashdBlockTransactions.WithLabelValues(
 					"shielded",
