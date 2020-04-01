@@ -13,6 +13,8 @@ services:
       - ZCASHD_RPCPORT=$ZCASHD_RPCPORT
       - ZCASHD_NETWORK=$ZCASHD_NETWORK
       - ZCASHD_ALLOWIP=$ZCASHD_ALLOWIP
+    ports:
+      - "$ZCASHD_RPCPORT:$ZCASHD_RPCPORT"
     mem_limit: 4G
     logging:
       driver: loki

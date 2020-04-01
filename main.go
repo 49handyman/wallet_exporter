@@ -390,6 +390,28 @@ func getBlockInfo(bHash string) {
 				strconv.FormatBool(pool.Monitored),
 			).Set(float64(pool.ValueDeltaZat))
 		}
+
+		for _, tx := range block.TX {
+			log.Infof("Checking transaction: %s", tx.Txid)
+			if tx.IsTransparent() {
+				zcashdBlockTransactions.WithLabelValues(
+					"transparent",
+				).Add(1.0)
+			} else if tx.IsMixed() {
+				zcashdBlockTransactions.WithLabelValues(
+					"mixed",
+				).Add(1.0)
+			} else if tx.IsShielded() {
+				zcashdBlockTransactions.WithLabelValues(
+					"shielded",
+				).Add(1.0)
+			} else {
+				log.Warnf("Unknow transaction: %s", tx.Txid)
+				zcashdBlockTransactions.WithLabelValues(
+					"unknown",
+				).Add(1.0)
+			}
+		}
 	}
 }
 

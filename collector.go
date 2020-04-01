@@ -103,6 +103,11 @@ var (
 			Name: "zcash_value_pool_value_delta_zat",
 			Help: "Zcash network pools delta in zats"},
 		[]string{"id", "monitored"})
+	zcashdBlockTransactions = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "zcashd_block_transactions",
+			Help: "Zcash block transactions"},
+		[]string{"type"})
 )
 
 // ZCASH_PEERS = Gauge("zcash_peers", "Number of peers")
@@ -150,5 +155,5 @@ func init() {
 	prometheus.MustRegister(zcashdValuePoolChainValueZat)
 	prometheus.MustRegister(zcashdValuePoolChainValueDelta)
 	prometheus.MustRegister(zcashdValuePoolChainValueDelatZat)
-
+	prometheus.MustRegister(zcashdBlockTransactions)
 }
