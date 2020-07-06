@@ -211,28 +211,24 @@ func getPeerInfo() {
 				log.Infoln("Got peerinfo: ", pi.Addr)
 				zcashdPeerVerion.WithLabelValues(
 					pi.Addr,
-					pi.AddrLocal,
 					strconv.FormatBool(pi.Inbound),
 					strconv.Itoa(pi.Banscore),
 					pi.Subver,
 				).Set(float64(pi.Version))
 				zcashdPeerConnTime.WithLabelValues(
 					pi.Addr,
-					pi.AddrLocal,
 					strconv.FormatBool(pi.Inbound),
 					strconv.Itoa(pi.Banscore),
 					pi.Subver,
 				).Set(float64(pi.Conntime))
 				zcashdPeerBytesSent.WithLabelValues(
 					pi.Addr,
-					pi.AddrLocal,
 					strconv.FormatBool(pi.Inbound),
 					strconv.Itoa(pi.Banscore),
 					pi.Subver,
 				).Set(float64(pi.BytesSent))
 				zcashdPeerBytesRecv.WithLabelValues(
 					pi.Addr,
-					pi.AddrLocal,
 					strconv.FormatBool(pi.Inbound),
 					strconv.Itoa(pi.Banscore),
 					pi.Subver,

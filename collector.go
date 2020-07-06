@@ -44,25 +44,25 @@ var (
 		prometheus.GaugeOpts{
 			Name: "zcash_peer_version",
 			Help: "Peer node version."},
-		[]string{"addr", "addrlocal", "inbound", "banscore", "subver"},
+		[]string{"addr", "inbound", "banscore", "subver"},
 	)
 	zcashdPeerConnTime = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Name: "zcash_peer_conn_time",
 			Help: "Peer node connection time."},
-		[]string{"addr", "addrlocal", "inbound", "banscore", "subver"},
+		[]string{"addr", "inbound", "banscore", "subver"},
 	)
 	zcashdPeerBytesSent = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Name: "zcash_peer_bytes_sent",
 			Help: "Bytes sent to peer node."},
-		[]string{"addr", "addrlocal", "inbound", "banscore", "subver"},
+		[]string{"addr", "inbound", "banscore", "subver"},
 	)
 	zcashdPeerBytesRecv = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Name: "zcash_peer_bytes_recv",
 			Help: "Bytes received from peer node."},
-		[]string{"addr", "addrlocal", "inbound", "banscore", "subver"},
+		[]string{"addr", "inbound", "banscore", "subver"},
 	)
 	zcashdChainTipLength = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
