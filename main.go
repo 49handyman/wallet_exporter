@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -209,51 +210,36 @@ func getPeerInfo() {
 		} else {
 			for _, pi := range *peerinfo {
 				log.Infoln("Got peerinfo: ", pi.Addr)
+				if pi.Subver == "" {
+					log.Infof("Skipping Peer that doesn't provide a valid subver")
+					continue
+				}
+				//We're going to split the ip/port pair on :, and just keep the IP address
+				peerAddrSplit := strings.Split(pi.Addr, ":")
 				zcashdPeerVerion.WithLabelValues(
-					pi.Addr,
+					peerAddrSplit[0],
 					strconv.FormatBool(pi.Inbound),
 					strconv.Itoa(pi.Banscore),
 					pi.Subver,
 				).Set(float64(pi.Version))
 				zcashdPeerConnTime.WithLabelValues(
-					pi.Addr,
+					peerAddrSplit[0],
 					strconv.FormatBool(pi.Inbound),
 					strconv.Itoa(pi.Banscore),
 					pi.Subver,
 				).Set(float64(pi.Conntime))
 				zcashdPeerBytesSent.WithLabelValues(
-					pi.Addr,
+					peerAddrSplit[0],
 					strconv.FormatBool(pi.Inbound),
 					strconv.Itoa(pi.Banscore),
 					pi.Subver,
 				).Set(float64(pi.BytesSent))
 				zcashdPeerBytesRecv.WithLabelValues(
-					pi.Addr,
+					peerAddrSplit[0],
 					strconv.FormatBool(pi.Inbound),
 					strconv.Itoa(pi.Banscore),
 					pi.Subver,
 				).Set(float64(pi.BytesRecv))
-				// zcashdPeerInfo.WithLabelValues(
-				// 	strconv.Itoa(pi.ID),
-				// 	pi.Addr,
-				// 	pi.AddrLocal,
-				// 	pi.Services,
-				// 	strconv.Itoa(pi.LastSend),
-				// 	strconv.Itoa(pi.LastRecv),
-				// 	strconv.Itoa(pi.BytesSent),
-				// 	strconv.Itoa(pi.BytesRecv),
-				// 	strconv.Itoa(pi.Conntime),
-				// 	strconv.Itoa(pi.Timeoffset),
-				// 	strconv.FormatFloat(pi.PingTime, 'f', 2, 64),
-				// 	strconv.Itoa(pi.PingWait),
-				// 	strconv.Itoa(pi.Version),
-				// 	pi.Subver,
-				// 	strconv.FormatBool(pi.Inbound),
-				// 	strconv.Itoa(pi.Startingheight),
-				// 	strconv.Itoa(pi.Banscore),
-				// 	strconv.Itoa(pi.SyncedHeaders),
-				// 	strconv.Itoa(pi.SyncedBlocks),
-				// ).Set(float64(pi.ID))
 			}
 		}
 		time.Sleep(time.Duration(30) * time.Second)
