@@ -48,6 +48,8 @@ var (
 		"version",
 		"Display binary version.",
 	).Default("False").Bool()
+	currentHeight int
+	statuses      = []string{"valid-fork", "valid-headers", "headers-only", "invalid"}
 )
 
 func main() {
@@ -87,7 +89,7 @@ func main() {
 	go getMemPoolInfo()
 	go getWalletInfo()
 	go getPeerInfo()
-	//go getChainTips()
+	go getChainTips()
 	go getDeprecationInfo()
 	go getBestBlockHash()
 	log.Infoln("Listening on", *listenAddress)
@@ -136,6 +138,7 @@ func getBlockchainInfo() {
 				blockinfo.Chain, strconv.Itoa(blockinfo.Blocks)).Set(1)
 
 			zcashdBlocks.Set(float64(blockinfo.Blocks))
+			currentHeight = blockinfo.Blocks
 			zcashdDifficulty.Set(blockinfo.Difficulty)
 			zcashdVerificationProgress.Set(blockinfo.VerificationProgress)
 			zcashdSizeOnDisk.Set(blockinfo.SizeOnDisk)
@@ -260,13 +263,45 @@ func getChainTips() {
 		if err := rpcClient.CallFor(&chaintips, "getchaintips"); err != nil {
 			log.Warnln("Error calling getchaintips", err)
 		} else {
+			//status of the chain (active, valid-fork, valid-headers, headers-only, invalid)
+			longestChainbyStatus := make(map[string]int)
+			statusCount := make(map[string]int)
 			for _, ct := range *chaintips {
-				log.Infoln("Got chaintip: ", ct.Hash)
-				zcashdChainTipLength.WithLabelValues(
-					ct.Hash,
-					ct.Status,
-					strconv.Itoa(ct.Height),
-				).Set(float64(ct.Branchlen))
+				// We don't care if the branch length is less then 2
+				// If we don't have a current height, or the tip is too old, ignore it
+				if ct.Branchlen < 2 || currentHeight == 0 || ct.Height > currentHeight-1000 {
+					continue
+				}
+				switch ct.Status {
+				case "valid-fork":
+					if ct.Branchlen > longestChainbyStatus["valid-fork"] {
+						longestChainbyStatus["valid-fork"] = ct.Branchlen
+					}
+					statusCount["valid-fork"]++
+				case "valid-headers":
+					if ct.Branchlen > longestChainbyStatus["valid-headers"] {
+						longestChainbyStatus["valid-headers"] = ct.Branchlen
+					}
+					statusCount["valid-headers"]++
+				case "headers-only":
+					if ct.Branchlen > longestChainbyStatus["headers-only"] {
+						longestChainbyStatus["headers-only"] = ct.Branchlen
+					}
+					statusCount["headers-only"]++
+				case "invalid":
+					if ct.Branchlen > longestChainbyStatus["invalid"] {
+						longestChainbyStatus["invalid"] = ct.Branchlen
+					}
+					statusCount["invalid"]++
+				}
+			}
+			for _, status := range statuses {
+				zcashdChainTipLongest.WithLabelValues(
+					status,
+				).Set(float64(longestChainbyStatus[status]))
+				zcashdChainTipCount.WithLabelValues(
+					status,
+				).Set(float64(statusCount[status]))
 			}
 		}
 		time.Sleep(time.Duration(30) * time.Second)
