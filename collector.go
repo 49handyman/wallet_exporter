@@ -107,7 +107,7 @@ var (
 			Name: "zcash_chainip_longest",
 			Help: "Chain tip branch length",
 		},
-		[]string{"branchlen"})
+		[]string{"status"})
 	zcashdChainTipCount = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Name: "zcash_count_chaintips",
