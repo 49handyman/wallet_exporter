@@ -104,7 +104,7 @@ var (
 	//status of the chain (active, valid-fork, valid-headers, headers-only, invalid)
 	zcashdChainTipLongest = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name: "zcash_chainip_longest",
+			Name: "zcash_chaintip_longest",
 			Help: "Chain tip branch length",
 		},
 		[]string{"status"})

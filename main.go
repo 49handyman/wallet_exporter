@@ -264,14 +264,16 @@ func getChainTips() {
 			log.Warnln("Error calling getchaintips", err)
 		} else {
 			//status of the chain (active, valid-fork, valid-headers, headers-only, invalid)
-			longestChainbyStatus := make(map[string]int)
-			statusCount := make(map[string]int)
+			longestChainbyStatus := map[string]int{"valid-fork": 0, "valid-headers": 0, "headers-only": 0, "invalid": 0}
+			statusCount := map[string]int{"valid-fork": 0, "valid-headers": 0, "headers-only": 0, "invalid": 0}
 			for _, ct := range *chaintips {
 				// We don't care if the branch length is less then 2
 				// If we don't have a current height, or the tip is too old, ignore it
-				if ct.Branchlen < 2 || currentHeight == 0 || ct.Height > currentHeight-1000 {
+				// fmt.Printf("Considering: %v\n", ct)
+				if ct.Branchlen < 2 || currentHeight == 0 || ct.Height < currentHeight-1000 {
 					continue
 				}
+				fmt.Printf("Considering: %v\n", ct)
 				switch ct.Status {
 				case "valid-fork":
 					if ct.Branchlen > longestChainbyStatus["valid-fork"] {
