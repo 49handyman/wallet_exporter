@@ -1,9 +1,12 @@
-FROM golang:1.13
+FROM golang:1.13 as builder
 
-ADD . /go/src/github.com/zcash-hackworks/zcashd_exporter
+ADD . /app/
+WORKDIR /app/
+RUN make build
 
-RUN go get github.com/zcash-hackworks/zcashd_exporter
-RUN go install github.com/zcash-hackworks/zcashd_exporter
-
+FROM alpine:latest
+RUN apk --no-cache add ca-certificates
+WORKDIR /root/
+COPY --from=builder /app/zcashd_exporter /usr/local/bin/
 ENTRYPOINT ["zcashd_exporter"]
 CMD ["--help"]

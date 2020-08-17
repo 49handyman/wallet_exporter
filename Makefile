@@ -20,4 +20,4 @@ all: build
 
 # Build binary
 build:
-	go build $(LDFLAGS) 
+	CGO_ENABLED=0 go build $(LDFLAGS) 
