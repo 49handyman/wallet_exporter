@@ -64,13 +64,6 @@ var (
 			Help: "Bytes received from peer node."},
 		[]string{"addr", "inbound", "banscore", "subver"},
 	)
-	zcashdChainTipLength = prometheus.NewGaugeVec(
-		prometheus.GaugeOpts{
-			Name: "zcash_chainip_length",
-			Help: "Chain tip length",
-		},
-		[]string{"hash", "status", "height"},
-	)
 	zcashdDeprecationHeight = prometheus.NewGauge(
 		prometheus.GaugeOpts{
 			Name: "zcashd_deprecation_height",
@@ -108,6 +101,19 @@ var (
 			Name: "zcashd_block_transactions",
 			Help: "Zcash block transactions"},
 		[]string{"type"})
+	//status of the chain (active, valid-fork, valid-headers, headers-only, invalid)
+	zcashdChainTipLongest = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "zcash_chaintip_longest",
+			Help: "Chain tip branch length",
+		},
+		[]string{"status"})
+	zcashdChainTipCount = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "zcash_count_chaintips",
+			Help: "Count of the chaintips",
+		},
+		[]string{"status"})
 )
 
 // ZCASH_PEERS = Gauge("zcash_peers", "Number of peers")
@@ -148,7 +154,6 @@ func init() {
 	prometheus.MustRegister(zcashdPeerConnTime)
 	prometheus.MustRegister(zcashdPeerBytesSent)
 	prometheus.MustRegister(zcashdPeerBytesRecv)
-	prometheus.MustRegister(zcashdChainTipLength)
 	prometheus.MustRegister(zcashdDeprecationHeight)
 	prometheus.MustRegister(zcashdBestBlockTransitionSeconds)
 	prometheus.MustRegister(zcashdValuePoolChainValue)
@@ -156,4 +161,6 @@ func init() {
 	prometheus.MustRegister(zcashdValuePoolChainValueDelta)
 	prometheus.MustRegister(zcashdValuePoolChainValueDelatZat)
 	prometheus.MustRegister(zcashdBlockTransactions)
+	prometheus.MustRegister(zcashdChainTipLongest)
+	prometheus.MustRegister(zcashdChainTipCount)
 }

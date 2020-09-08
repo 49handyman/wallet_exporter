@@ -70,8 +70,8 @@ type PeerInfo struct {
 type GetChainTips []ChainTip
 
 type ChainTip struct {
-	Height    int    `json:"height"`
 	Hash      string `json:"hash"`
+	Height    int    `json:"height"`
 	Branchlen int    `json:"branchlen"`
 	Status    string `json:"status"`
 }
