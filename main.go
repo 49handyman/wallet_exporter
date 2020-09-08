@@ -135,7 +135,7 @@ func getBlockchainInfo() {
 		} else {
 
 			zcashdBlockchainInfo.WithLabelValues(
-				blockinfo.Chain, strconv.Itoa(blockinfo.Blocks)).Set(1)
+				blockinfo.Chain).Set(1)
 
 			zcashdBlocks.Set(float64(blockinfo.Blocks))
 			currentHeight = blockinfo.Blocks
