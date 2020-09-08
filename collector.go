@@ -10,7 +10,7 @@ var (
 		prometheus.GaugeOpts{
 			Name: "zcash_blockchain_info",
 			Help: "Information about the current state of the block chain"},
-		[]string{"network", "blocks"},
+		[]string{"network"},
 	)
 	zcashdInfo = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
