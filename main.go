@@ -56,8 +56,7 @@ func main() {
 	kingpin.HelpFlag.Short('h')
 	kingpin.Parse()
 	if *versionFlag {
-
-		fmt.Printf("(version=%s, branch=%s, gitcommit=%s)\n", version.Version, version.Branch, version.GitCommit)
+		fmt.Printf("(version=%s, gitcommit=%s)\n", version.Version, version.GitCommit)
 		fmt.Printf("(go=%s, user=%s, date=%s)\n", version.GoVersion, version.BuildUser, version.BuildDate)
 		os.Exit(0)
 	}
