@@ -1,15 +1,16 @@
 # zcashd_exporter
 
-The `zcashd_exporter` will poll a zcashd node's rpc endpoint, retreive data, then preent it for prometheus to scrape.
+The `wallet_exporter` will poll a zcashd, komodod, pirated node's rpc endpoint, retreive data, then preent it for prometheus to scrape.
 
 ## Getting started locally
 
 ```
-go get -v github.com/zcash-hackworks/zcashd_exporter
-go install github.com/zcash-hackworks/zcashd_exporter
+go get -v github.com/49handyman/wallet_exporter
+go install github.com/49handyman/wallet_exporter
 $GOPATH/bin/zcashd_exporter --help
 ```
-
+ 
+Just check --help and set option to point to your Pirate wallet config file ie: ./pirate/PIRATE.conf
 ## Getting Started With docker-compose
 
 ### Create zcashd direcotries
