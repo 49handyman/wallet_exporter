@@ -23,6 +23,16 @@ type GetInfo struct {
 	Version int `json:"version"`
 }
 
+// getmininginfo  Returns an object containing various mining state info.
+type GetMiningInfo struct {
+        Blocks          	int  	`json:"blocks"`
+        Difficulty     		float64	`json:"difficulty"`
+        NetworkHashRate 	float64 `json:"networkhashps"`
+        Chain           	string 	`json:"chain"`
+}
+
+
+
 // GetMemPoolInfo return the zcashd rpc `getmempoolinfo`
 // https://zcash-rpc.github.io/getmempoolinfo.html
 type GetMemPoolInfo struct {

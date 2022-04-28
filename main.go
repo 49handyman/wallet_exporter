@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	log "github.com/sirupsen/logrus"
+    log	"github.com/sirupsen/logrus"
 	"github.com/ybbus/jsonrpc"
 	"gitlab.com/zcash/zcashd_exporter/version"
 	"gopkg.in/alecthomas/kingpin.v2"
@@ -70,27 +70,28 @@ func main() {
 	reconcileConfigs()
 	log.Infoln("exporter config", *listenAddress, *rpcHost, *rpcPort, *rpcUser)
 
-	log.Infoln("Starting zcashd_exporter", version.Info())
+	log.Infoln("Starting wallet_exporter", version.Info())
 	log.Infoln("Build context", version.BuildContext())
 
 	http.Handle("/metrics", promhttp.Handler())
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(`<html>
-		<head><title>Zcashd Exporter</title></head>
+		<head><title>Wallet Exporter</title></head>
 		<body>
-		<h1>Zcashd Exporter</h1>
+		<h1>Wallet Exporter</h1>
 		<p><a href="/metrics">Metrics</a></p>
 		</body>
 		</html>`))
 	})
 	go getInfo()
 	go getBlockchainInfo()
-	go getMemPoolInfo()
+	go getMiningInfo()
+//	go getMemPoolInfo()
 	go getWalletInfo()
-	go getPeerInfo()
-	go getChainTips()
-	go getDeprecationInfo()
-	go getBestBlockHash()
+//	go getPeerInfo()
+//	go getChainTips()
+//	go getDeprecationInfo()
+//	go getBestBlockHash()
 	log.Infoln("Listening on", *listenAddress)
 	if err := http.ListenAndServe(*listenAddress, nil); err != nil {
 		log.Fatal(err)
@@ -146,6 +147,38 @@ func getBlockchainInfo() {
 	}
 
 }
+
+// getmininginfo function
+
+func getMiningInfo() {
+        basicAuth := base64.StdEncoding.EncodeToString([]byte(*rpcUser + ":" + *rpcPassword))
+        rpcClient := jsonrpc.NewClientWithOpts("http://"+*rpcHost+":"+*rpcPort,
+                &jsonrpc.RPCClientOpts{
+                        CustomHeaders: map[string]string{
+                                "Authorization": "Basic " + basicAuth,
+                        }})
+        var mininginfo *GetMiningInfo
+
+        for {
+                if err := rpcClient.CallFor(&mininginfo, "getmininginfo"); err != nil {
+                        log.Warnln("Error calling getmininginfo", err)
+                } else {
+
+
+                        zcashdMiningInfo.WithLabelValues(
+                                mininginfo.Chain).Set(1)
+
+                        zcashdBlocks.Set(float64(mininginfo.Blocks))
+                        zcashdDifficulty.Set(mininginfo.Difficulty)
+                        zcashdNetworkHashRate.Set(mininginfo.NetworkHashRate)
+                }
+                time.Sleep(time.Duration(30) * time.Second)
+        }
+
+}
+
+
+
 
 func getMemPoolInfo() {
 	basicAuth := base64.StdEncoding.EncodeToString([]byte(*rpcUser + ":" + *rpcPassword))
@@ -211,9 +244,9 @@ func getPeerInfo() {
 			log.Warnln("Error calling getpeerinfo", err)
 		} else {
 			for _, pi := range *peerinfo {
-				log.Infoln("Got peerinfo: ", pi.Addr)
+		//		log.Infoln("Got peerinfo: ", pi.Addr)
 				if pi.Subver == "" {
-					log.Infof("Skipping Peer that doesn't provide a valid subver")
+		//			log.Infof("Skipping Peer that doesn't provide a valid subver")
 					continue
 				}
 				//We're going to split the ip/port pair on :, and just keep the IP address
@@ -377,7 +410,7 @@ func getBestBlockHash() {
 }
 
 func getBlockInfo(bHash string) {
-	log.Infoln("Processing block: ", bHash)
+//	log.Infoln("Processing block: ", bHash)
 	basicAuth := base64.StdEncoding.EncodeToString([]byte(*rpcUser + ":" + *rpcPassword))
 	rpcClient := jsonrpc.NewClientWithOpts("http://"+*rpcHost+":"+*rpcPort,
 		&jsonrpc.RPCClientOpts{
