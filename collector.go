@@ -8,23 +8,23 @@ import (
 var (
 	zcashdBlockchainInfo = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name: "zcash_blockchain_info"},
-//			Help: "Info"},
+			Name: "blockchain_info",
+			Help: "Info"},
 		[]string{"network"},
 	)
 
         zcashdMiningInfo = prometheus.NewGaugeVec(
                 prometheus.GaugeOpts{
-                        Name: "zcash_mining_info"},
-//                        Help: "Information about the current state of mining network"},
+                        Name: "mining_info",
+                        Help: "state of mining network"},
                 []string{"mining"},
         )
 
 
 	zcashdInfo = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name: "zcashd_info"},
-//			Help: "Node state info"},
+			Name: "wallet_info",
+			Help: "Node state info"},
 		[]string{"version"},
 	)
 	zcashdBlocks = prometheus.NewGauge(prometheus.GaugeOpts{
